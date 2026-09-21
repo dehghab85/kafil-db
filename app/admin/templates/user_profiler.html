@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>پروفایل کاربر | Kafil Music Admin</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-base: #0a0b0e;
+            --bg-surface: #12141a;
+            --bg-elevated: #1a1d24;
+            --border: #2a2f3a;
+            --text-primary: #e8eaf0;
+            --text-secondary: #8b92a5;
+            --text-muted: #5a6173;
+            --accent: #7c5af0;
+            --success: #34d399;
+            --warning: #fbbf24;
+            --danger: #f87171;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: var(--bg-base);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container { max-width: 1000px; margin: 0 auto; padding: 2rem; }
+
+        .page-header { margin-bottom: 2rem; }
+
+        .page-title {
+            font-size: 1.75rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .page-title i { color: var(--accent); }
+
+        .search-box {
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .search-form {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 0.75rem 1rem;
+            background: var(--bg-elevated);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 1rem;
+        }
+
+        .search-input::placeholder { color: var(--text-muted); }
+
+        .search-btn {
+            padding: 0.75rem 1.5rem;
+            background: var(--accent);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .search-btn:hover { background: #9071f5; }
+
+        .profile-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.25rem;
+        }
+
+        @media (max-width: 700px) { .profile-grid { grid-template-columns: 1fr; } }
+
+        .card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.25rem;
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .card-header h3 { font-size: 0.95rem; }
+        .card-header i { color: var(--accent); }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.4rem 0;
+            font-size: 0.9rem;
+        }
+
+        .info-label { color: var(--text-secondary); }
+        .info-value { color: var(--text-primary); font-weight: 500; }
+
+        .vector-preview {
+            font-family: 'Cascadia Code', 'Fira Code', monospace;
+            font-size: 0.7rem;
+            background: var(--bg-elevated);
+            padding: 0.75rem;
+            border-radius: 6px;
+            word-break: break-all;
+            color: var(--text-secondary);
+            max-height: 100px;
+            overflow: auto;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .badge-success { background: rgba(52, 211, 153, 0.15); color: var(--success); }
+        .badge-warning { background: rgba(251, 191, 36, 0.15); color: var(--warning); }
+        .badge-danger { background: rgba(248, 113, 113, 0.15); color: var(--danger); }
+
+        .list-item {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.9rem;
+        }
+
+        .list-item:last-child { border-bottom: none; }
+
+        .empty { text-align: center; color: var(--text-muted); padding: 2rem; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="page-header">
+            <h1 class="page-title">
+                <i class="fa-solid fa-user-circle"></i>
+                پروفایل‌سنج کاربر
+            </h1>
+        </header>
+
+        <div class="search-box">
+            <form method="GET" class="search-form">
+                <input type="number" name="user_id" class="search-input" 
+                       placeholder="شناسه کاربر را وارد کنید" min="1"
+                       value="{{ user_id | default('') }}">
+                <button type="submit" class="search-btn">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    جستجو
+                </button>
+            </form>
+        </div>
+
+        {% if profile %}
+        <div class="profile-grid">
+            <div class="card">
+                <div class="card-header">
+                    <i class="fa-solid fa-user"></i>
+                    <h3>اطلاعات کاربر</h3>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">شناسه</span>
+                    <span class="info-value">{{ profile.user_id }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">نام کاربری</span>
+                    <span class="info-value">{{ profile.username }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">تعاملات</span>
+                    <span class="info-value">{{ profile.interaction_count }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">بردار سلیقه</span>
+                    <span class="info-value">
+                        {% if profile.taste_vector %}
+                            <span class="badge badge-success">فعال</span>
+                        {% else %}
+                            <span class="badge badge-warning">غیرفعال</span>
+                        {% endif %}
+                    </span>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <i class="fa-solid fa-hand-pointer"></i>
+                    <h3>آمار تعاملات</h3>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">پخش</span>
+                    <span class="info-value">{{ profile.interaction_breakdown.play | default(0) }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">لایک</span>
+                    <span class="info-value">{{ profile.interaction_breakdown.like | default(0) }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">اسکیپ</span>
+                    <span class="info-value">{{ profile.interaction_breakdown.skip | default(0) }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">اشتراک‌گذاری</span>
+                    <span class="info-value">{{ profile.interaction_breakdown.share | default(0) }}</span>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <i class="fa-solid fa-heart"></i>
+                    <h3>ژانرهای مورد علاقه</h3>
+                </div>
+                {% if profile.preferred_genres %}
+                    {% for genre in profile.preferred_genres %}
+                    <div class="list-item">{{ genre }}</div>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty">هنوز ژانری انتخاب نشده</div>
+                {% endif %}
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <i class="fa-solid fa-microphone"></i>
+                    <h3>هنرمندان مورد علاقه</h3>
+                </div>
+                {% if profile.preferred_artists %}
+                    {% for artist in profile.preferred_artists %}
+                    <div class="list-item">{{ artist }}</div>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty">هنوز هنرمندی انتخاب نشده</div>
+                {% endif %}
+            </div>
+
+            <div class="card" style="grid-column: 1 / -1;">
+                <div class="card-header">
+                    <i class="fa-solid fa-wave-square"></i>
+                    <h3>بردار سلیقه (خلاصه)</h3>
+                </div>
+                {% if profile.taste_vector_preview %}
+                    <div class="vector-preview">{{ profile.taste_vector_preview }}</div>
+                {% else %}
+                    <div class="empty">بردار سلیقه‌ای وجود ندارد — کاربر باید تعامل داشته باشد</div>
+                {% endif %}
+            </div>
+        </div>
+        {% elif user_id %}
+        <div class="card">
+            <div class="empty">
+                <i class="fa-solid fa-user-slash" style="font-size:2rem;margin-bottom:0.5rem;opacity:0.3"></i>
+                <p>کاربری با این شناسه یافت نشد</p>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</body>
+</html>

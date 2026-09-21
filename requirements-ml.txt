@@ -1,0 +1,9 @@
+# ---- Optional, heavier ML backends (NOT required) ----
+# The default recommender runs on NumPy only. Install these to enable the
+# scikit-learn / implicit CF backends or FAISS/Annoy ANN backends, then set the
+# matching RECO_* variables in .env.
+#   pip install -r requirements-ml.txt
+scikit-learn>=1.4.0
+implicit>=0.7.2
+faiss-cpu>=1.8.0
+annoy>=1.17.3

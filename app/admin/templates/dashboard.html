@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>داشبورد | Kafil Music Admin</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.0/dist/chart.umd.js"></script>
+    <style>
+        :root {
+            --bg-base: #0a0b0e;
+            --bg-surface: #12141a;
+            --bg-elevated: #1a1d24;
+            --bg-hover: #22262f;
+            --border: #2a2f3a;
+            --text-primary: #e8eaf0;
+            --text-secondary: #8b92a5;
+            --text-muted: #5a6173;
+            --accent: #7c5af0;
+            --accent-glow: rgba(124, 90, 240, 0.25);
+            --success: #34d399;
+            --warning: #fbbf24;
+            --danger: #f87171;
+            --play-count: #06b6d4;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: var(--bg-base);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .admin-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .page-header {
+            margin-bottom: 2.5rem;
+        }
+
+        .page-title {
+            font-size: 1.75rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .page-title i { color: var(--accent); }
+
+        .page-subtitle {
+            color: var(--text-secondary);
+            margin-top: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.25rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .stat-card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            position: relative;
+            overflow: hidden;
+            transition: border-color 0.2s;
+        }
+
+        .stat-card:hover { border-color: var(--accent); }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent), transparent);
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            font-variant-numeric: tabular-nums;
+        }
+
+        .stat-icon {
+            position: absolute;
+            top: 1rem;
+            left: 1rem;
+            font-size: 1.25rem;
+            color: var(--text-muted);
+        }
+
+        .content-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        @media (max-width: 900px) {
+            .content-grid { grid-template-columns: 1fr; }
+        }
+
+        .card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .card-header {
+            padding: 1rem 1.25rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .card-header h3 {
+            font-size: 0.95rem;
+            font-weight: 600;
+        }
+
+        .card-header i { color: var(--accent); }
+
+        .card-body { padding: 1.25rem; }
+
+        .recent-list {
+            list-style: none;
+        }
+
+        .recent-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .recent-item:last-child { border-bottom: none; }
+
+        .interaction-badge {
+            padding: 0.25rem 0.6rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .badge-play { background: rgba(6, 182, 212, 0.15); color: var(--play-count); }
+        .badge-like { background: rgba(52, 211, 153, 0.15); color: var(--success); }
+        .badge-skip { background: rgba(248, 113, 113, 0.15); color: var(--danger); }
+        .badge-share { background: rgba(251, 191, 36, 0.15); color: var(--warning); }
+
+        .recent-meta {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-right: auto;
+        }
+
+        .track-list { list-style: none; }
+
+        .track-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.6rem 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .track-item:last-child { border-bottom: none; }
+
+        .track-rank {
+            width: 1.5rem;
+            text-align: center;
+            font-weight: 600;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        .track-info { flex: 1; }
+
+        .track-title {
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        .track-stats {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 0.15rem;
+        }
+
+        .play-count {
+            color: var(--play-count);
+            font-weight: 600;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 220px;
+        }
+
+        .genre-bar {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .genre-name {
+            width: 80px;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            text-align: left;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .genre-bar-track {
+            flex: 1;
+            height: 8px;
+            background: var(--bg-elevated);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .genre-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent), #a78bfa);
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+
+        .genre-count {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            width: 35px;
+            text-align: left;
+        }
+
+        .full-width { grid-column: 1 / -1; }
+
+        .empty-state {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-muted);
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-container">
+        <header class="page-header">
+            <h1 class="page-title">
+                <i class="fa-solid fa-chart-pie"></i>
+                داشبورد مدیریت
+            </h1>
+            <p class="page-subtitle">نمای کلی از سیستم پیشنهاددهنده موسیقی کافیل</p>
+        </header>
+
+        <section class="stats-grid">
+            <div class="stat-card">
+                <i class="fa-solid fa-users stat-icon"></i>
+                <div class="stat-label">کاربران</div>
+                <div class="stat-value">{{ stats.total_users | default(0) }}</div>
+            </div>
+            <div class="stat-card">
+                <i class="fa-solid fa-music stat-icon"></i>
+                <div class="stat-label">آهنگ‌ها</div>
+                <div class="stat-value">{{ stats.total_tracks | default(0) }}</div>
+            </div>
+            <div class="stat-card">
+                <i class="fa-solid fa-microphone stat-icon"></i>
+                <div class="stat-label">هنرمندان</div>
+                <div class="stat-value">{{ stats.total_artists | default(0) }}</div>
+            </div>
+            <div class="stat-card">
+                <i class="fa-solid fa-layer-group stat-icon"></i>
+                <div class="stat-label">ژانرها</div>
+                <div class="stat-value">{{ stats.total_genres | default(0) }}</div>
+            </div>
+            <div class="stat-card">
+                <i class="fa-solid fa-hand-pointer stat-icon"></i>
+                <div class="stat-label">تعاملات</div>
+                <div class="stat-value">{{ stats.total_interactions | default(0) }}</div>
+            </div>
+        </section>
+
+        <div class="content-grid">
+            <div class="card">
+                <div class="card-header">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                    <h3>تعاملات اخیر</h3>
+                </div>
+                <div class="card-body">
+                    {% if recent_interactions %}
+                    <ul class="recent-list">
+                        {% for interaction in recent_interactions %}
+                        <li class="recent-item">
+                            <span class="interaction-badge badge-{{ interaction.interaction_type.value }}">
+                                {{ interaction.interaction_type.value }}
+                            </span>
+                            <span class="recent-meta">
+                                کاربر {{ interaction.user_id }} · آهنگ {{ interaction.track_id }}
+                            </span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <div class="empty-state">
+                        <i class="fa-solid fa-inbox" style="font-size:2rem;margin-bottom:0.5rem;opacity:0.3"></i>
+                        <p>هنوز تعاملی ثبت نشده</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <i class="fa-solid fa-fire"></i>
+                    <h3>آهنگ‌های پربازدید</h3>
+                </div>
+                <div class="card-body">
+                    {% if top_tracks %}
+                    <ul class="track-list">
+                        {% for track in top_tracks %}
+                        <li class="track-item">
+                            <span class="track-rank">{{ loop.index }}</span>
+                            <div class="track-info">
+                                <div class="track-title">{{ track.title }}</div>
+                                <div class="track-stats">
+                                    <span class="play-count">{{ track.view_count }} پخش</span>
+                                </div>
+                            </div>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <div class="empty-state">
+                        <p>هنوز آهنگی ثبت نشده</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="card full-width">
+                <div class="card-header">
+                    <i class="fa-solid fa-chart-simple"></i>
+                    <h3>توزیع ژانرها</h3>
+                </div>
+                <div class="card-body">
+                    {% if top_genres %}
+                    <div class="chart-container">
+                        {% set max_count = top_genres[0].track_count if top_genres else 1 %}
+                        {% for genre in top_genres %}
+                        <div class="genre-bar">
+                            <span class="genre-name">{{ genre.name }}</span>
+                            <div class="genre-bar-track">
+                                <div class="genre-bar-fill" style="width: {{ (genre.track_count / max_count * 100)|round|int }}%"></div>
+                            </div>
+                            <span class="genre-count">{{ genre.track_count }}</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="empty-state">
+                        <p>داده‌ای برای نمایش وجود ندارد</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

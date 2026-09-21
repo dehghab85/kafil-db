@@ -1,0 +1,249 @@
+{% extends "admin/templates/base.html" %}
+
+{% block styles %}
+{{ super() }}
+<style>
+    /* Kafil Music Admin — Dark Theme */
+    :root,
+    .theme-dark {
+        --admin-background: #0a0b0e;
+        --admin-surface: #12141a;
+        --admin-elevated: #1a1d24;
+        --admin-border: #2a2f3a;
+        --admin-text: #e8eaf0;
+        --admin-text-secondary: #8b92a5;
+        --admin-text-muted: #5a6173;
+        --admin-accent: #7c5af0;
+        --admin-accent-hover: #9071f5;
+        --admin-success: #34d399;
+        --admin-warning: #fbbf24;
+        --admin-danger: #f87171;
+    }
+
+    /* Force dark mode on all SQLAdmin elements */
+    body,
+    .sa-admin {
+        background-color: #0a0b0e !important;
+        color: #e8eaf0 !important;
+        font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    }
+
+    /* Override CSS variables */
+    .sa-admin {
+        --sl-color-body: #0a0b0e;
+        --sl-color-primary-50: #7c5af0;
+        --sl-color-primary-100: #7c5af0;
+        --sl-color-neutral-0: #12141a;
+        --sl-color-neutral-50: #1a1d24;
+        --sl-color-neutral-100: #22262f;
+        --sl-color-neutral-200: #2a2f3a;
+        --sl-color-neutral-300: #3a4050;
+        --sl-color-neutral-400: #5a6173;
+        --sl-color-neutral-500: #8b92a5;
+        --sl-color-neutral-600: #e8eaf0;
+        --sl-color-neutral-700: #f5f6f8;
+    }
+
+    /* Nav sidebar */
+    .sa-sidebar {
+        background: #12141a !important;
+        border-left: 1px solid #2a2f3a !important;
+    }
+
+    .sa-sidebar a,
+    .sa-nav-item {
+        color: #8b92a5 !important;
+    }
+
+    .sa-sidebar a:hover,
+    .sa-nav-item:hover {
+        background: #1a1d24 !important;
+        color: #e8eaf0 !important;
+    }
+
+    .sa-nav-group-header {
+        color: #5a6173 !important;
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        padding: 1rem 1rem 0.4rem !important;
+    }
+
+    /* Main content area */
+    .sa-main,
+    .sa-topbar {
+        background: #0a0b0e !important;
+    }
+
+    .sa-topbar {
+        background: #12141a !important;
+        border-bottom: 1px solid #2a2f3a !important;
+    }
+
+    /* Cards and tables */
+    .sa-card,
+    .sa-table-container,
+    .sa-pagination-container {
+        background: #12141a !important;
+        border: 1px solid #2a2f3a !important;
+        border-radius: 10px;
+    }
+
+    /* Table styling */
+    .sa-table {
+        color: #e8eaf0 !important;
+    }
+
+    .sa-table thead {
+        background: #1a1d24 !important;
+    }
+
+    .sa-table th {
+        color: #8b92a5 !important;
+        font-weight: 600;
+        border-bottom: 1px solid #2a2f3a !important;
+    }
+
+    .sa-table td {
+        color: #e8eaf0 !important;
+        border-bottom: 1px solid #22262f !important;
+    }
+
+    .sa-table tbody tr:hover {
+        background: #1a1d24 !important;
+    }
+
+    /* Form inputs */
+    input,
+    select,
+    textarea {
+        background: #1a1d24 !important;
+        border: 1px solid #2a2f3a !important;
+        color: #e8eaf0 !important;
+        border-radius: 6px !important;
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+        border-color: #7c5af0 !important;
+        outline: none !important;
+        box-shadow: 0 0 0 2px rgba(124, 90, 240, 0.2) !important;
+    }
+
+    /* Buttons */
+    .sa-btn {
+        border-radius: 6px !important;
+        font-weight: 600 !important;
+        transition: all 0.2s !important;
+    }
+
+    .sa-btn-primary {
+        background: #7c5af0 !important;
+        border-color: #7c5af0 !important;
+    }
+
+    .sa-btn-primary:hover {
+        background: #9071f5 !important;
+        border-color: #9071f5 !important;
+    }
+
+    .sa-btn-secondary {
+        background: #1a1d24 !important;
+        border: 1px solid #2a2f3a !important;
+        color: #e8eaf0 !important;
+    }
+
+    .sa-btn-secondary:hover {
+        background: #22262f !important;
+    }
+
+    /* Links */
+    a {
+        color: #7c5af0 !important;
+    }
+
+    a:hover {
+        color: #9071f5 !important;
+    }
+
+    /* Flash messages */
+    .sa-alert {
+        border-radius: 8px !important;
+    }
+
+    /* Filter dropdowns */
+    .sa-filter-dropdown {
+        background: #12141a !important;
+        border: 1px solid #2a2f3a !important;
+        border-radius: 8px !important;
+    }
+
+    /* Pagination */
+    .sa-pagination button {
+        background: #1a1d24 !important;
+        border: 1px solid #2a2f3a !important;
+        color: #e8eaf0 !important;
+        border-radius: 4px !important;
+    }
+
+    .sa-pagination button.active,
+    .sa-pagination button:hover {
+        background: #7c5af0 !important;
+        border-color: #7c5af0 !important;
+        color: #fff !important;
+    }
+
+    /* Modal/Dialog */
+    .sa-modal {
+        background: #12141a !important;
+        border: 1px solid #2a2f3a !important;
+        border-radius: 12px !important;
+    }
+
+    .sa-modal-header {
+        background: #1a1d24 !important;
+        border-bottom: 1px solid #2a2f3a !important;
+    }
+
+    /* Search bar */
+    .sa-search-input {
+        background: #1a1d24 !important;
+        border: 1px solid #2a2f3a !important;
+        border-radius: 8px !important;
+    }
+
+    /* Title and branding */
+    .sa-title {
+        color: #e8eaf0 !important;
+    }
+
+    .sa-logo-text {
+        color: #7c5af0 !important;
+    }
+
+    /* Breadcrumbs */
+    .sa-breadcrumbs {
+        color: #5a6173 !important;
+    }
+
+    /* Scrollbar styling */
+    ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+        background: #12141a;
+    }
+
+    ::-webkit-scrollbar-thumb {
+        background: #2a2f3a;
+        border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+        background: #3a4050;
+    }
+</style>
+{% endblock %}

@@ -1,0 +1,25 @@
+# Byte-compiled / cache
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# Environments & secrets
+.env
+.venv/
+venv/
+env/
+
+# Local databases & ML artifacts (never commit data or trained models)
+*.db
+*.sqlite3
+/artifacts/
+*.joblib
+*.npy
+*.npz
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/

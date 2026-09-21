@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>پایپلاین ML | Kafil Music Admin</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-base: #0a0b0e;
+            --bg-surface: #12141a;
+            --bg-elevated: #1a1d24;
+            --bg-hover: #22262f;
+            --border: #2a2f3a;
+            --text-primary: #e8eaf0;
+            --text-secondary: #8b92a5;
+            --text-muted: #5a6173;
+            --accent: #7c5af0;
+            --accent-hover: #9071f5;
+            --success: #34d399;
+            --warning: #fbbf24;
+            --danger: #f87171;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: var(--bg-base);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .page-header {
+            margin-bottom: 2rem;
+        }
+
+        .page-title {
+            font-size: 1.75rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .page-title i { color: var(--accent); }
+
+        .page-subtitle {
+            color: var(--text-secondary);
+            margin-top: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .flash {
+            padding: 1rem 1.25rem;
+            border-radius: 10px;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-weight: 500;
+        }
+
+        .flash-success { background: rgba(52, 211, 153, 0.12); border: 1px solid rgba(52, 211, 153, 0.3); color: var(--success); }
+        .flash-error { background: rgba(248, 113, 113, 0.12); border: 1px solid rgba(248, 113, 113, 0.3); color: var(--danger); }
+
+        .pipeline-grid {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .pipeline-card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: border-color 0.2s;
+        }
+
+        .pipeline-card:hover { border-color: var(--accent); }
+
+        .pipeline-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .pipeline-icon {
+            width: 48px;
+            height: 48px;
+            background: var(--bg-elevated);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            color: var(--accent);
+        }
+
+        .pipeline-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .pipeline-desc {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-top: 0.25rem;
+        }
+
+        .pipeline-action {
+            margin-top: 1rem;
+        }
+
+        .action-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.6rem 1.25rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: #fff;
+        }
+
+        .btn-primary:hover { background: var(--accent-hover); }
+
+        .btn-secondary {
+            background: var(--bg-elevated);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover { background: var(--bg-hover); }
+
+        .info-section {
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .info-section h3 {
+            font-size: 1rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .info-section h3 i { color: var(--accent); }
+
+        .info-list {
+            list-style: none;
+        }
+
+        .info-list li {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9rem;
+        }
+
+        .info-list li:last-child { border-bottom: none; }
+
+        .info-label { color: var(--text-secondary); }
+
+        .info-value { color: var(--text-primary); font-weight: 500; }
+
+        .danger-zone {
+            border-color: rgba(248, 113, 113, 0.3);
+            margin-top: 2rem;
+        }
+
+        .danger-zone h3 i { color: var(--danger); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="page-header">
+            <h1 class="page-title">
+                <i class="fa-solid fa-robot"></i>
+                پنل کنترل پایپلاین ML
+            </h1>
+            <p class="page-subtitle">اجرا و مدیریت سیستم پیشنهاددهنده</p>
+        </header>
+
+        {% if request.session.get('flash_message') %}
+        <div class="flash flash-{{ request.session.get('flash_type') }}">
+            <i class="fa-solid {% if request.session.get('flash_type') == 'success' %}fa-check-circle{% else %}fa-circle-exclamation{% endif %}"></i>
+            {{ request.session.get('flash_message') }}
+        </div>
+        {% endif %}
+
+        <div class="pipeline-grid">
+            <div class="pipeline-card">
+                <div class="pipeline-header">
+                    <div class="pipeline-icon">
+                        <i class="fa-solid fa-arrows-rotate"></i>
+                    </div>
+                    <div>
+                        <div class="pipeline-title">همگام‌سازی کامل</div>
+                        <div class="pipeline-desc">بازسازی کامل مدل‌های CF، به‌روزرسانی بردارهای محتوا و سلیقه کاربران</div>
+                    </div>
+                </div>
+                <div class="pipeline-action">
+                    <form method="POST" action="/admin/ml-pipeline/run" style="display:inline">
+                        <button type="submit" class="action-btn btn-primary">
+                            <i class="fa-solid fa-play"></i>
+                            اجرای پایپلاین کامل
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="pipeline-card">
+                <div class="pipeline-header">
+                    <div class="pipeline-icon">
+                        <i class="fa-solid fa-wave-square"></i>
+                    </div>
+                    <div>
+                        <div class="pipeline-title">به‌روزرسانی بردارهای محتوا</div>
+                        <div class="pipeline-desc">محاسبه مجدد بردارهای محتوای آهنگ‌ها از ویژگی‌های صوتی</div>
+                    </div>
+                </div>
+                <div class="pipeline-action">
+                    <form method="POST" action="/admin/ml-pipeline/update-embeddings" style="display:inline">
+                        <button type="submit" class="action-btn btn-secondary">
+                            <i class="fa-solid fa-refresh"></i>
+                            بروزرسانی امبدینگ‌ها
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="pipeline-card">
+                <div class="pipeline-header">
+                    <div class="pipeline-icon">
+                        <i class="fa-solid fa-user-pen"></i>
+                    </div>
+                    <div>
+                        <div class="pipeline-title">به‌روزرسانی بردارهای سلیقه</div>
+                        <div class="pipeline-desc">محاسبه مجدد بردارهای سلیقه کاربران بر اساس تعاملات</div>
+                    </div>
+                </div>
+                <div class="pipeline-action">
+                    <form method="POST" action="/admin/ml-pipeline/update-taste-vectors" style="display:inline">
+                        <button type="submit" class="action-btn btn-secondary">
+                            <i class="fa-solid fa-user-gear"></i>
+                            بروزرسانی سلیقه کاربران
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="info-section">
+            <h3><i class="fa-solid fa-circle-info"></i> وضعیت سیستم</h3>
+            <ul class="info-list">
+                <li>
+                    <span class="info-label">الگوریتم CF</span>
+                    <span class="info-value">ALS (Pure NumPy)</span>
+                </li>
+                <li>
+                    <span class="info-label">شاخص ANN</span>
+                    <span class="info-value">NumPy (Cosine Similarity)</span>
+                </li>
+                <li>
+                    <span class="info-label">ابعاد بردار CF</span>
+                    <span class="info-value">{{ config.get('RECO_CF_DIM', 32) }}</span>
+                </li>
+                <li>
+                    <span class="info-label">ابعاد بردار محتوا</span>
+                    <span class="info-value">{{ config.get('RECO_CONTENT_DIM', 16) }}</span>
+                </li>
+                <li>
+                    <span class="info-label">وزن همکاری</span>
+                    <span class="info-value">{{ config.get('RECO_W_COLLAB', 0.5) }}</span>
+                </li>
+                <li>
+                    <span class="info-label">وزن محتوا</span>
+                    <span class="info-value">{{ config.get('RECO_W_CONTENT', 0.3) }}</span>
+                </li>
+                <li>
+                    <span class="info-label">وزن محبوبیت</span>
+                    <span class="info-value">{{ config.get('RECO_W_POPULARITY', 0.2) }}</span>
+                </li>
+            </ul>
+        </div>
+
+        <div class="info-section danger-zone">
+            <h3><i class="fa-solid fa-triangle-exclamation"></i> نکات مهم</h3>
+            <ul class="info-list">
+                <li>
+                    <span class="info-label">همگام‌سازی کامل</span>
+                    <span class="info-value">۱-۵ دقیقه بسته به حجم داده</span>
+                </li>
+                <li>
+                    <span class="info-label">بروزرسانی امبدینگ</span>
+                    <span class="info-value">چند ثانیه</span>
+                </li>
+                <li>
+                    <span class="info-label">بروزرسانی سلیقه</span>
+                    <span class="info-value">۱۰-۳۰ ثانیه</span>
+                </li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>

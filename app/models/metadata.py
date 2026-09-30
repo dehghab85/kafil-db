@@ -46,6 +46,16 @@ class Artist(Base):
         "Playlist", back_populates="artist"
     )
 
+    def __str__(self) -> str:
+        """
+        نمایش خوانا در پنل ادمین (SQLAdmin).
+
+        SQLAdmin در ستون‌های رابطه‌ای و منوهای انتخابی از ``str(obj)``
+        استفاده می‌کند؛ بدون این متد نام کلاس و آدرس حافظه نمایش داده می‌شد
+        (مثلاً «<Artist at 0x7f...>» در ستون مداحِ نوحه‌ها).
+        """
+        return self.name or f"Artist #{self.id}"
+
 
 class Album(Base):
     __tablename__ = "albums"

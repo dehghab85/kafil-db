@@ -70,6 +70,17 @@ class Settings(BaseSettings):
     # آیا از path-style (/) به‌جای virtual-hosted-style استفاده شود (برای پارس‌پک لازم است)
     s3_path_style: bool = Field(True, alias="S3_PATH_STYLE")
 
+    # ---- Media storage for the admin panel ----
+    # backend: local | s3 | auto
+    #   local → فایل‌ها در static/uploads ذخیره و روی /static سرو می‌شوند
+    #   s3    → فایل‌ها روی فضای ابری (ParsPack/S3) آپلود می‌شوند
+    #   auto  → اگر S3_ENABLED=true باشد S3، وگرنه محلی
+    media_storage_backend: str = Field("auto", alias="MEDIA_STORAGE_BACKEND")
+    # حداکثر حجم مجاز آپلود کاور از پنل ادمین (مگابایت)
+    media_image_max_mb: int = Field(10, alias="MEDIA_IMAGE_MAX_MB")
+    # حداکثر حجم مجاز آپلود فایل صوتی از پنل ادمین (مگابایت)
+    media_audio_max_mb: int = Field(100, alias="MEDIA_AUDIO_MAX_MB")
+
     # ---- Derived helpers ----
     @property
     def is_sqlite(self) -> bool:

@@ -1,0 +1,113 @@
+{% extends "sqladmin/layout.html" %}
+{% from 'sqladmin/_macros.html' import render_form_fields %}
+
+{#
+  قالب مشترکِ فرم‌های ساخت/ویرایش برای مدل‌هایی که فایل رسانه‌ای دارند
+  (Artist / Song / Track): آپلود فایل + پیش‌نمایش فایل‌های فعلی.
+#}
+
+{% block content %}
+<div class="col-12">
+  <div class="card media-form-card">
+    <div class="card-header">
+      <h3 class="card-title">
+        {% if obj %}{{ _("Edit %(name)s", name=model_view.name) }}{% else %}{{ _("New %(name)s", name=model_view.name) }}{% endif %}
+      </h3>
+    </div>
+    <div class="card-body border-bottom py-3">
+      {% if error %}
+      <div class="alert alert-danger" role="alert">{{ error }}</div>
+      {% endif %}
+
+      <form
+        action="{% if obj %}{{ model_view._build_url_for('admin:edit', request, obj) }}{% else %}{{ url_for('admin:create', identity=model_view.identity) }}{% endif %}{% if request.url.query %}?{{ request.url.query }}{% endif %}"
+        method="POST"
+        enctype="multipart/form-data"
+      >
+        <fieldset class="form-fieldset">
+          {{ render_form_fields(form, form_opts=form_opts, ajax_lookup_url=url_for('admin:ajax_lookup', identity=model_view.identity)) }}
+        </fieldset>
+
+        {% if obj and (obj.audio_url if obj.audio_url is defined else false or obj.cover_url if obj.cover_url is defined else false) %}
+        <div class="media-current-files">
+          {% if obj.audio_url is defined and obj.audio_url %}
+          <p><strong>{{ _("Current audio") }}:</strong>
+            <a href="{{ obj.audio_url }}" target="_blank" rel="noopener">{{ obj.audio_url }}</a>
+          </p>
+          {% endif %}
+          {% if obj.cover_url is defined and obj.cover_url %}
+          <p><strong>{{ _("Current cover") }}:</strong>
+            <a href="{{ obj.cover_url }}" target="_blank" rel="noopener">{{ obj.cover_url }}</a>
+          </p>
+          <img src="{{ obj.cover_url }}" alt="{{ _('Current cover') }}" loading="lazy" class="media-preview" />
+          {% endif %}
+        </div>
+        {% endif %}
+
+        <div class="row mt-3">
+          <div class="col-md-2">
+            <a href="{{ url_for('admin:list', identity=model_view.identity) }}{% if request.url.query %}?{{ request.url.query }}{% endif %}" class="btn">
+              {{ _("Cancel") }}
+            </a>
+          </div>
+          <div class="col-md-6">
+            <div class="btn-group flex-wrap">
+              <input type="submit" name="save" value="{{ _('Save') }}" class="btn">
+              {% if obj %}
+              <input type="submit" name="save" value="{{ _('Save and continue editing') }}" class="btn">
+              {% else %}
+              {% if model_view.can_edit %}<input type="submit" name="save" value="{{ _('Save and continue editing') }}" class="btn">{% endif %}
+              <input type="submit" name="save" value="{{ _('Save and add another') }}" class="btn">
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block head_css %}
+{{ super() }}
+<style>
+  .media-form-card { color: var(--tblr-body-color, inherit); }
+  .media-form-card a { overflow-wrap: anywhere; }
+  .media-current-files {
+    margin-top: 1rem;
+    padding: 1rem;
+    border: 1px solid var(--tblr-border-color, #d9e1e8);
+    border-radius: .25rem;
+    background: var(--tblr-bg-surface-secondary, rgba(127, 127, 127, .08));
+  }
+  .media-current-files p:last-of-type { margin-bottom: .75rem; }
+  .media-preview {
+    display: block;
+    max-height: 160px;
+    max-width: 100%;
+    border-radius: 8px;
+    border: 1px solid var(--tblr-border-color, #d9e1e8);
+    object-fit: contain;
+  }
+  [data-bs-theme="dark"] .media-current-files,
+  .theme-dark .media-current-files {
+    background: rgba(255, 255, 255, .06);
+    border-color: rgba(255, 255, 255, .18);
+  }
+</style>
+{% if form is defined %}
+{% set form_media = collect_form_media(form) %}
+{% for url in form_media.css %}<link rel="stylesheet" href="{{ url }}">{% endfor %}
+{% endif %}
+{% endblock %}
+
+{% block tail_js %}
+{{ super() }}
+{% if form is defined %}
+{% set form_media = collect_form_media(form) %}
+{% for url in form_media.js %}<script src="{{ url }}"></script>{% endfor %}
+{% for field in form if field.editor_init_template is defined %}
+{% with field = field %}{% include field.editor_init_template %}{% endwith %}
+{% endfor %}
+{% endif %}
+{% endblock %}

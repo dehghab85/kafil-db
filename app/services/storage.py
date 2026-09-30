@@ -15,7 +15,7 @@ from __future__ import annotations
 import time
 import uuid
 from dataclasses import dataclass
-from pathlib import PurePosixPath
+from pathlib import Path, PurePosixPath
 
 import boto3
 from botocore.config import Config as BotoConfig
@@ -105,6 +105,111 @@ def _generate_key(prefix: str, original_filename: str) -> str:
     ext = PurePosixPath(original_filename).suffix or ""
     unique = f"upload_{int(time.time() * 1000)}_{uuid.uuid4().hex[:8]}{ext}"
     return str(PurePosixPath(prefix, unique))
+
+
+# ---------------------------------------------------------------------------
+# ذخیره‌سازی محلی (static) — همان مسیری که FastAPI روی /static سرو می‌کند
+# ---------------------------------------------------------------------------
+
+#: پوشهٔ ریشهٔ فایل‌های استاتیک (در app/main.py روی «/static» mount شده است).
+STATIC_DIR = Path("static")
+#: پوشهٔ ریشهٔ فایل‌های آپلودیِ محلی — «ریشهٔ مجاز» برای حذف ایمن.
+STATIC_UPLOAD_DIR = "uploads"
+#: پیشوند URL عمومیِ فایل‌های استاتیک.
+STATIC_URL_PREFIX = "/static"
+
+_MIME_TO_EXTENSION = {
+    "image/jpeg": ".jpg",
+    "image/png": ".png",
+    "image/webp": ".webp",
+    "image/gif": ".gif",
+    "image/bmp": ".bmp",
+    "image/svg+xml": ".svg",
+    "audio/mpeg": ".mp3",
+    "audio/wav": ".wav",
+    "audio/flac": ".flac",
+    "audio/ogg": ".ogg",
+    "audio/mp4": ".m4a",
+    "audio/aac": ".aac",
+}
+
+
+def _guess_extension(filename: str, content_type: str) -> str:
+    """پسوند مناسب فایل را از نام اصلی یا MIME type حدس می‌زند."""
+    ext = PurePosixPath(filename or "").suffix.lower()
+    if ext in IMAGE_EXTENSIONS or ext in AUDIO_EXTENSIONS:
+        return ext
+    return _MIME_TO_EXTENSION.get((content_type or "").lower(), "")
+
+
+def _static_relative_path(key_or_url: str, url_prefix: str = STATIC_URL_PREFIX) -> str:
+    """مسیر نسبیِ یک فایل استاتیک را از URL عمومی یا کلید استخراج می‌کند."""
+    candidate = (key_or_url or "").replace("\\", "/").lstrip("/")
+    for prefix in (f"{STATIC_DIR.as_posix().strip('/')}/", f"{url_prefix.strip('/')}/"):
+        if candidate.startswith(prefix):
+            candidate = candidate[len(prefix):]
+            break
+    return candidate
+
+
+def save_local_file(
+    file_content: bytes,
+    filename: str,
+    *,
+    folder: str = STATIC_UPLOAD_DIR,
+    content_type: str = "",
+    max_mb: int = 10,
+    url_prefix: str = STATIC_URL_PREFIX,
+) -> StorageResult:
+    """
+    ذخیرهٔ فایل روی فایل‌سیستم محلی و برگرداندن URL عمومیِ آن.
+
+    نام فایل به «UUID» تبدیل می‌شود تا نام‌های تکراری/غیرمجاز (فارسی، فاصله‌دار،
+    پیمایش مسیر) هرگز نوشته نشوند و آپلود مجدد، فایل قدیمی را بازنویسی نکند.
+
+    مسیر نهایی: ``<STATIC_DIR>/<folder>/<uuid><ext>``
+    URL نهایی:  ``<url_prefix>/<folder>/<uuid><ext>``
+    """
+    _validate_file(file_content, filename, content_type, max_mb=max_mb)
+
+    ext = _guess_extension(filename, content_type)
+    unique_name = f"{uuid.uuid4().hex}{ext}"
+    relative = PurePosixPath(folder, unique_name)
+
+    target_dir = STATIC_DIR / folder
+    target_dir.mkdir(parents=True, exist_ok=True)
+    (STATIC_DIR / relative).write_bytes(file_content)
+
+    return StorageResult(
+        url=f"{url_prefix.rstrip('/')}/{relative.as_posix()}",
+        key=relative.as_posix(),
+        size=len(file_content),
+        content_type=content_type or "application/octet-stream",
+        filename=filename,
+    )
+
+
+def delete_local_file(key_or_url: str, *, url_prefix: str = STATIC_URL_PREFIX) -> bool:
+    """
+    حذف فایلِ ذخیره‌شدهٔ محلی بر اساس URL عمومی یا مسیر نسبی.
+
+    برای جلوگیری از حذف تصادفیِ سایر فایل‌های پروژه، فقط فایل‌های داخل
+    ``<STATIC_DIR>/<STATIC_UPLOAD_DIR>`` حذف می‌شوند.
+    """
+    relative = _static_relative_path(key_or_url, url_prefix)
+    if not relative:
+        return False
+
+    candidate = (STATIC_DIR / relative).resolve()
+    uploads_root = (STATIC_DIR / STATIC_UPLOAD_DIR).resolve()
+    if candidate == uploads_root or not candidate.is_relative_to(uploads_root):
+        return False
+
+    try:
+        candidate.unlink()
+        return True
+    except OSError:
+        return False
 
 
 # ---------------------------------------------------------------------------
@@ -320,3 +425,81 @@ def generate_presigned_download_url(key: str, expires_in: int = 3600) -> str:
         Params={"Bucket": settings.s3_bucket_name, "Key": key},
         ExpiresIn=expires_in,
     )
+
+
+# ---------------------------------------------------------------------------
+# انتخاب بک‌اند رسانه (محلی / ابری) — برای پنل ادمین
+# ---------------------------------------------------------------------------
+
+def resolve_media_backend() -> str:
+    """
+    بک‌اندِ ذخیره‌سازی فایل‌های رسانه‌ای پنل ادمین: ``local`` یا ``s3``.
+
+    مقدار ``MEDIA_STORAGE_BACKEND`` در .env تصمیم می‌گیرد:
+      - ``local`` → فایل‌ها در ``static/uploads`` ذخیره و روی ``/static`` سرو می‌شوند.
+      - ``s3``    → فایل‌ها روی فضای ابری (ParsPack/S3) آپلود می‌شوند.
+      - ``auto`` (پیش‌فرض) → اگر ``S3_ENABLED=true`` باشد S3، وگرنه محلی.
+    """
+    backend = (settings.media_storage_backend or "auto").strip().lower()
+    if backend in {"local", "s3"}:
+        return backend
+    return "s3" if settings.s3_enabled else "local"
+
+
+def store_media_image(
+    file_content: bytes,
+    filename: str,
+    content_type: str = "image/jpeg",
+    *,
+    subfolder: str = STATIC_UPLOAD_DIR,
+    max_mb: int = 10,
+) -> StorageResult:
+    """
+    ذخیرهٔ یک تصویر رسانه‌ای (کاور مداح/پلی‌لیست/…) در بک‌اندِ فعال.
+
+    خروجی همیشه یک URL عمومی است (نسبی برای حالت محلی، مطلق برای S3) که
+    مستقیماً در ستون ``*_url`` ذخیره می‌شود.
+    """
+    if resolve_media_backend() == "s3":
+        return upload_cover(file_content, filename, content_type, max_mb=max_mb)
+    return save_local_file(
+        file_content,
+        filename,
+        folder=subfolder,
+        content_type=content_type,
+        max_mb=max_mb,
+    )
+
+
+def store_media_audio(
+    file_content: bytes,
+    filename: str,
+    content_type: str = "audio/mpeg",
+    *,
+    subfolder: str = STATIC_UPLOAD_DIR,
+    max_mb: int = 100,
+) -> StorageResult:
+    """ذخیرهٔ فایل صوتی در بک‌اندِ فعال (محلی یا S3)."""
+    if resolve_media_backend() == "s3":
+        return upload_audio(file_content, filename, content_type, max_mb=max_mb)
+    return save_local_file(
+        file_content,
+        filename,
+        folder=subfolder,
+        content_type=content_type,
+        max_mb=max_mb,
+    )
+
+
+def delete_media_file(url_or_key: str) -> bool:
+    """
+    حذف فایل رسانه‌ای از بک‌اندی که در آن ذخیره شده است.
+
+    ورودی می‌تواند URL محلی (``/static/uploads/...``)، URL کاملِ S3، یا کلید
+    فایل باشد. برای rollback اتمیک هنگام خطا در پنل ادمین استفاده می‌شود.
+    """
+    if not url_or_key:
+        return False
+    if url_or_key.startswith(("http://", "https://")):
+        return delete_file(url_or_key)
+    return delete_local_file(url_or_key)

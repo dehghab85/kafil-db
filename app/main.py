@@ -3,8 +3,11 @@ Kafil Music API — v4.0 (Spotify-style hybrid recommender).
 
 FastAPI application entry point.
 """
+from pathlib import Path
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from starlette.middleware.sessions import SessionMiddleware
 
 from app.admin import setup_admin
@@ -30,6 +33,13 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Static files (فایل‌های آپلودشده از پنل ادمین در static/ ذخیره می‌شوند).
+# مسیر mount باید قبل از admin باشد تا /static به StaticFiles برسد، نه به
+# مسیرهای SQLAdmin (که با {identity} هر مقدار را می‌گیرند).
+STATIC_DIR = Path(__file__).resolve().parent.parent / "static"
+STATIC_DIR.mkdir(parents=True, exist_ok=True)
+app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 
 # Routers
 app.include_router(auth.router)

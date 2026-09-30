@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>آپلود آهنگ | کافیل موزیک</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-base: #0a0b0e;
+            --bg-surface: #12141a;
+            --bg-elevated: #1a1d24;
+            --border: #2a2f3a;
+            --text-primary: #e8eaf0;
+            --text-secondary: #8b92a5;
+            --accent: #7c5af0;
+            --success: #34d399;
+            --danger: #f87171;
+        }
+        
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: var(--bg-base);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        
+        .page-header {
+            margin-bottom: 2rem;
+        }
+        
+        .page-title {
+            font-size: 1.75rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .page-title i { color: var(--accent); }
+        
+        .page-subtitle {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+        
+        .upload-card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .drop-zone {
+            border: 2px dashed var(--accent);
+            border-radius: 10px;
+            padding: 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: rgba(124, 90, 240, 0.05);
+        }
+        
+        .drop-zone:hover,
+        .drop-zone.drag-over {
+            background: rgba(124, 90, 240, 0.1);
+            border-color: #9071f5;
+        }
+        
+        .drop-zone i {
+            font-size: 2.5rem;
+            color: var(--accent);
+            display: block;
+            margin-bottom: 0.75rem;
+        }
+        
+        .drop-zone p {
+            color: var(--text-secondary);
+            margin-bottom: 0.25rem;
+        }
+        
+        input[type="file"] {
+            display: none;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+        
+        input[type="text"],
+        input[type="number"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 0.75rem;
+            background: var(--bg-elevated);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--text-primary);
+            font-size: 0.95rem;
+        }
+        
+        input:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px rgba(124, 90, 240, 0.2);
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+        
+        .file-list {
+            margin-top: 1.5rem;
+        }
+        
+        .file-item {
+            background: var(--bg-elevated);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 0.75rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .file-info {
+            flex: 1;
+        }
+        
+        .file-name {
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+        
+        .file-size {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-top: 0.25rem;
+        }
+        
+        .file-remove {
+            background: rgba(248, 113, 113, 0.1);
+            border: none;
+            color: var(--danger);
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .file-remove:hover {
+            background: rgba(248, 113, 113, 0.2);
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+        
+        button {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .btn-primary {
+            background: var(--accent);
+            color: #fff;
+        }
+        
+        .btn-primary:hover:not(:disabled) {
+            background: #9071f5;
+        }
+        
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .btn-secondary {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+        }
+        
+        .btn-secondary:hover {
+            background: var(--border);
+        }
+        
+        .progress-container {
+            display: none;
+            margin-top: 2rem;
+        }
+        
+        .progress-item {
+            margin-bottom: 1.5rem;
+        }
+        
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: var(--bg-elevated);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: var(--accent);
+            width: 0%;
+            transition: width 0.3s;
+        }
+        
+        .alert {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            display: none;
+        }
+        
+        .alert-success {
+            background: rgba(52, 211, 153, 0.1);
+            border: 1px solid rgba(52, 211, 153, 0.3);
+            color: var(--success);
+        }
+        
+        .alert-error {
+            background: rgba(248, 113, 113, 0.1);
+            border: 1px solid rgba(248, 113, 113, 0.3);
+            color: var(--danger);
+        }
+        
+        .alert.show {
+            display: block;
+        }
+        
+        .select-multiple {
+            min-height: 120px;
+            padding: 0.5rem;
+        }
+        
+        .select-multiple option {
+            padding: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="page-header">
+            <div class="page-title">
+                <i class="fa-solid fa-cloud-arrow-up"></i>
+                آپلود آهنگ‌های جدید
+            </div>
+            <div class="page-subtitle">فایل صوتی را به فضای ابری آپلود کنید</div>
+        </div>
+        
+        <div id="alertBox" class="alert"></div>
+        
+        <form id="uploadForm">
+            <!-- Drag & Drop Zone -->
+            <div class="upload-card">
+                <div class="drop-zone" id="dropZone">
+                    <i class="fa-solid fa-file-audio"></i>
+                    <p><strong>فایل صوتی را اینجا رها کنید</strong></p>
+                    <p style="font-size: 0.85rem;">یا برای انتخاب کلیک کنید</p>
+                </div>
+                <input type="file" id="audioInput" accept="audio/*" multiple />
+                <div class="file-list" id="fileList"></div>
+            </div>
+            
+            <!-- Track Metadata -->
+            <div class="upload-card">
+                <h3 style="margin-bottom: 1.5rem;">
+                    <i class="fa-solid fa-circle-info" style="color: var(--accent);"></i>
+                    اطلاعات آهنگ
+                </h3>
+                
+                <div class="form-group">
+                    <label for="title">عنوان *</label>
+                    <input type="text" id="title" name="title" required />
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="artist">مداح *</label>
+                        <select id="artist" name="artist_id" required>
+                            <option value="">انتخاب مداح...</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="album">آلبوم</label>
+                        <select id="album" name="album_id">
+                            <option value="">انتخاب آلبوم...</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="genres">ژانرها</label>
+                    <select id="genres" name="genres" multiple class="select-multiple">
+                    </select>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="duration">مدت (ثانیه)</label>
+                        <input type="number" id="duration" name="duration_sec" min="0" />
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="releaseDate">تاریخ انتشار</label>
+                        <input type="date" id="releaseDate" name="release_date" />
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="lyrics">متن شعر</label>
+                    <textarea id="lyrics" name="lyrics" rows="4" placeholder="متن شعر آهنگ..."></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="cover">کاور آهنگ</label>
+                    <input type="file" id="coverInput" accept="image/*" />
+                    <div id="coverPreview"></div>
+                </div>
+            </div>
+            
+            <!-- Progress -->
+            <div class="progress-container" id="progressContainer">
+                <h3 style="margin-bottom: 1.5rem;">وضعیت آپلود</h3>
+                <div id="progressList"></div>
+            </div>
+            
+            <!-- Buttons -->
+            <div class="button-group">
+                <button type="submit" class="btn-primary" id="submitBtn">
+                    <i class="fa-solid fa-upload"></i>
+                    آپلود فایل
+                </button>
+                <button type="reset" class="btn-secondary">
+                    <i class="fa-solid fa-redo"></i>
+                    پاک کردن
+                </button>
+            </div>
+        </form>
+    </div>
+    
+    <script>
+        const dropZone = document.getElementById('dropZone');
+        const audioInput = document.getElementById('audioInput');
+        const fileList = document.getElementById('fileList');
+        const uploadForm = document.getElementById('uploadForm');
+        const alertBox = document.getElementById('alertBox');
+        const progressContainer = document.getElementById('progressContainer');
+        const progressList = document.getElementById('progressList');
+        const submitBtn = document.getElementById('submitBtn');
+        
+        let selectedFiles = [];
+        
+        // Load artists and genres
+        async function loadMetadata() {
+            try {
+                const response = await fetch('/admin/api/metadata');
+                const data = await response.json();
+                
+                // Populate artists
+                const artistSelect = document.getElementById('artist');
+                data.artists.forEach(artist => {
+                    const option = document.createElement('option');
+                    option.value = artist.id;
+                    option.textContent = artist.name;
+                    artistSelect.appendChild(option);
+                });
+                
+                // Populate genres
+                const genreSelect = document.getElementById('genres');
+                data.genres.forEach(genre => {
+                    const option = document.createElement('option');
+                    option.value = genre.id;
+                    option.textContent = genre.name;
+                    genreSelect.appendChild(option);
+                });
+            } catch (error) {
+                showAlert('خطا در بارگذاری اطلاعات', 'error');
+                console.error(error);
+            }
+        }
+        
+        // Drag & drop handlers
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('drag-over');
+        });
+        
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('drag-over');
+        });
+        
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('drag-over');
+            handleFiles(e.dataTransfer.files);
+        });
+        
+        dropZone.addEventListener('click', () => {
+            audioInput.click();
+        });
+        
+        audioInput.addEventListener('change', (e) => {
+            handleFiles(e.target.files);
+        });
+        
+        function handleFiles(files) {
+            selectedFiles = Array.from(files).filter(f => f.type.startsWith('audio/'));
+            displayFiles();
+        }
+        
+        function displayFiles() {
+            fileList.innerHTML = '';
+            selectedFiles.forEach((file, index) => {
+                const size = (file.size / 1024 / 1024).toFixed(2);
+                const item = document.createElement('div');
+                item.className = 'file-item';
+                item.innerHTML = `
+                    <div class="file-info">
+                        <div class="file-name">${file.name}</div>
+                        <div class="file-size">${size} MB</div>
+                    </div>
+                    <button type="button" class="file-remove" onclick="removeFile(${index})">
+                        <i class="fa-solid fa-trash"></i> حذف
+                    </button>
+                `;
+                fileList.appendChild(item);
+            });
+        }
+        
+        function removeFile(index) {
+            selectedFiles.splice(index, 1);
+            displayFiles();
+        }
+        
+        uploadForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            if (selectedFiles.length === 0) {
+                showAlert('لطفاً حداقل یک فایل انتخاب کنید', 'error');
+                return;
+            }
+            
+            submitBtn.disabled = true;
+            progressContainer.style.display = 'block';
+            progressList.innerHTML = '';
+            
+            for (let i = 0; i < selectedFiles.length; i++) {
+                const file = selectedFiles[i];
+                await uploadTrack(file, i);
+            }
+            
+            submitBtn.disabled = false;
+        });
+        
+        async function uploadTrack(file, index) {
+            const formData = new FormData();
+            formData.append('audio_file', file);
+            formData.append('title', document.getElementById('title').value);
+            formData.append('artist_id', document.getElementById('artist').value);
+            formData.append('album_id', document.getElementById('album').value);
+            formData.append('duration_sec', document.getElementById('duration').value || 0);
+            formData.append('release_date', document.getElementById('releaseDate').value);
+            formData.append('lyrics', document.getElementById('lyrics').value);
+            
+            const genres = Array.from(document.getElementById('genres').selectedOptions).map(o => o.value);
+            genres.forEach(g => formData.append('genres', g));
+            
+            const coverFile = document.getElementById('coverInput').files[0];
+            if (coverFile) {
+                formData.append('cover_file', coverFile);
+            }
+            
+            const progressItem = document.createElement('div');
+            progressItem.className = 'progress-item';
+            progressItem.id = `progress-${index}`;
+            progressItem.innerHTML = `
+                <div class="progress-label">
+                    <span>${file.name}</span>
+                    <span id="percent-${index}">0%</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="fill-${index}"></div>
+                </div>
+            `;
+            progressList.appendChild(progressItem);
+            
+            try {
+                const response = await fetch('/admin/upload-track', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (response.ok) {
+                    document.getElementById(`percent-${index}`).textContent = '✓ تمام شد';
+                    document.getElementById(`fill-${index}`).style.width = '100%';
+                } else {
+                    const error = await response.json();
+                    throw new Error(error.detail || 'خطا در آپلود');
+                }
+            } catch (error) {
+                document.getElementById(`percent-${index}`).textContent = '✗ خطا';
+                showAlert(`خطا در آپلود ${file.name}: ${error.message}`, 'error');
+            }
+        }
+        
+        function showAlert(message, type) {
+            alertBox.textContent = message;
+            alertBox.className = `alert alert-${type} show`;
+            setTimeout(() => alertBox.classList.remove('show'), 5000);
+        }
+        
+        // Initialize
+        loadMetadata();
+    </script>
+</body>
+</html>

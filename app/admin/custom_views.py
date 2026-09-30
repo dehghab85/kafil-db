@@ -196,3 +196,120 @@ class UserProfilerView(BaseView):
             )
         finally:
             db.close()
+
+class BulkUploadView(BaseView):
+    """
+    Bulk track upload with cloud storage integration.
+    """
+    
+    name = "آپلود آهنگ"
+    icon = "fa-solid fa-cloud-arrow-up"
+    
+    @expose("/upload-tracks", methods=["GET"])
+    async def upload_page(self, request: Request):
+        """Display upload form."""
+        return await self.templates.TemplateResponse(
+            "upload_tracks.html",
+            {"request": request},
+        )
+    
+    @expose("/upload-track", methods=["POST"])
+    async def handle_upload(self, request: Request):
+        """Handle track file upload and metadata."""
+        from app.services.storage import upload_audio, upload_cover
+        from app.models import Album
+        
+        db = SessionLocal()
+        try:
+            form = await request.form()
+            
+            # Parse form data
+            audio_file = form.get("audio_file")
+            title = form.get("title", "").strip()
+            artist_id = form.get("artist_id")
+            album_id = form.get("album_id")
+            duration_sec = int(form.get("duration_sec") or 0)
+            release_date = form.get("release_date")
+            lyrics = form.get("lyrics", "").strip()
+            genres = form.getlist("genres")
+            cover_file = form.get("cover_file")
+            
+            # Validate required fields
+            if not title or not artist_id or not audio_file:
+                return {
+                    "status": "error",
+                    "detail": "عنوان، مداح و فایل صوتی الزامی هستند"
+                }, 400
+            
+            # Upload audio file
+            audio_content = await audio_file.read()
+            audio_result = upload_audio(
+                file_content=audio_content,
+                filename=audio_file.filename or "track.mp3",
+                content_type=audio_file.content_type or "audio/mpeg",
+            )
+            
+            # Upload cover if provided
+            cover_url = None
+            if cover_file:
+                try:
+                    cover_content = await cover_file.read()
+                    if cover_content:
+                        cover_result = upload_cover(
+                            file_content=cover_content,
+                            filename=cover_file.filename or "cover.jpg",
+                            content_type=cover_file.content_type or "image/jpeg",
+                        )
+                        cover_url = cover_result.url
+                except Exception:
+                    pass
+            
+            # Create track record
+            track = Track(
+                title=title,
+                artist_id=int(artist_id),
+                album_id=int(album_id) if album_id else None,
+                audio_url=audio_result.url,
+                cover_url=cover_url,
+                duration_sec=duration_sec,
+                release_date=release_date,
+                lyrics=lyrics,
+            )
+            
+            # Add genres
+            if genres:
+                track.genres = db.query(Genre).filter(Genre.id.in_(genres)).all()
+            
+            db.add(track)
+            db.commit()
+            
+            return {
+                "status": "success",
+                "message": f"آهنگ '{title}' با موفقیت آپلود شد",
+                "track_id": track.id,
+                "audio_url": audio_result.url,
+            }
+            
+        except Exception as e:
+            db.rollback()
+            return {
+                "status": "error",
+                "detail": str(e)
+            }, 500
+        finally:
+            db.close()
+    
+    @expose("/api/metadata", methods=["GET"])
+    async def get_metadata(self, request: Request):
+        """Return artists and genres for form dropdowns."""
+        db = SessionLocal()
+        try:
+            artists = db.query(Artist).order_by(Artist.name).all()
+            genres = db.query(Genre).order_by(Genre.name).all()
+            
+            return {
+                "artists": [{"id": a.id, "name": a.name} for a in artists],
+                "genres": [{"id": g.id, "name": g.name} for g in genres],
+            }
+        finally:
+            db.close()

@@ -61,11 +61,14 @@ def upgrade() -> None:
         'users',
         sa.Column('id', sa.Integer(), nullable=False),
         sa.Column('username', sa.String(length=50), nullable=True),
-        sa.Column('phone_number', sa.String(length=15), nullable=False),
+        # phone_number is nullable here to match the ORM model (username/password users
+        # can register without a phone; OTP-based users get their phone populated).
+        sa.Column('phone_number', sa.String(length=15), nullable=True),
         sa.Column('email', sa.String(length=100), nullable=True),
         sa.Column('password_hash', sa.String(length=128), nullable=True),
-        sa.Column('is_admin', sa.Boolean(), nullable=False, default=False),
-        sa.Column('is_phone_verified', sa.Boolean(), nullable=False, default=False),
+        sa.Column('is_admin', sa.Boolean(), nullable=False, server_default='false'),
+        sa.Column('is_active', sa.Boolean(), nullable=False, server_default='true'),
+        sa.Column('is_phone_verified', sa.Boolean(), nullable=False, server_default='false'),
         sa.Column('created_at', sa.DateTime(), nullable=False),
         # Taste vector (pgvector on postgres, JSON on sqlite)
         sa.Column('taste_vector', sa.Text(), nullable=True),
@@ -73,7 +76,6 @@ def upgrade() -> None:
         sa.Column('preferred_artist_ids', sa.Text(), nullable=True),
         sa.PrimaryKeyConstraint('id'),
         sa.UniqueConstraint('username'),
-        sa.UniqueConstraint('phone_number'),
         sa.UniqueConstraint('email')
     )
     op.create_index(op.f('ix_users_username'), 'users', ['username'], unique=True)

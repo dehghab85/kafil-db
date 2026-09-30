@@ -6,6 +6,7 @@
   - preferred_genre_ids / preferred_artist_ids: کش JSON از top ژانرها/هنرمندها (مانند نسخه قبل).
 """
 from __future__ import annotations
+from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String, Table, Text
 
 from datetime import datetime, timezone
 
@@ -25,8 +26,8 @@ settings = get_settings()
 user_favorites = Table(
     "user_favorites",
     Base.metadata,
-    Column("user_id", Integer, primary_key=True),
-    Column("track_id", Integer, primary_key=True),
+    Column("user_id", Integer, ForeignKey("users.id", ondelete="CASCADE"), primary_key=True),
+    Column("track_id", Integer, ForeignKey("tracks.id", ondelete="CASCADE"), primary_key=True),
 )
 
 

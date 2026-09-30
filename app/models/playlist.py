@@ -85,3 +85,7 @@ class Playlist(Base):
         back_populates="playlists",
         order_by=playlist_songs.c.position,
     )
+
+    def __str__(self) -> str:
+        """نمایش خوانای پلیلیست در پنل ادمین (SQLAdmin)."""
+        return self.title or f"Playlist #{self.id}"

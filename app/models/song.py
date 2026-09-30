@@ -55,6 +55,19 @@ class Song(Base):
         "Playlist", secondary=playlist_songs, back_populates="songs"
     )
 
+    def __str__(self) -> str:
+        """
+        نمایش خوانای نوحه در پنل ادمین (SQLAdmin).
+
+        در لیستهای رابطهای (مثلاً «نوحههای پلیلیست») و منوهای انتخابی،
+        SQLAdmin از ``str(obj)`` استفاده میکند؛ با این متد «عنوان — مداح»
+        نمایش داده میشود نه نام کلاس و آدرس حافظه.
+        """
+        artist_name = self.artist.name if self.artist is not None else None
+        if artist_name:
+            return f"{self.title} — {artist_name}"
+        return self.title or f"Song #{self.id}"
+
     __table_args__ = (
         Index("ix_song_artist_title", "artist_id", "title"),
         Index("ix_song_occasion_style", "occasion", "style"),
